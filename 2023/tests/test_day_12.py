@@ -15,4 +15,4 @@ def test_silver():
 
 def test_gold():
     input = Assignment().parse_input(sample_input, True)
-    assert Assignment().gold(input=input) == 0
+    assert Assignment().gold(input=input) == 525152
