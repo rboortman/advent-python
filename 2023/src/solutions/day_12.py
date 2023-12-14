@@ -41,7 +41,6 @@ class Memoize:
     
 @Memoize
 def get_arrangements(line: tuple[Spring], to_check: tuple[int], check_left: int) -> int:
-    # print(line, to_check, check_left)
     if len(line) == 0:
         return 1 if len(to_check) == 0 and check_left <= 0 else 0
     
@@ -82,5 +81,4 @@ class Assignment(Solution):
 
     def gold(self, input: list[SpringRow]) -> int:
         a = [get_arrangements(tuple(row.springs), tuple(row.damaged_sizes), -1) for row in input]
-        print(a)
         return sum(a)

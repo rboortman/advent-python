@@ -45,6 +45,5 @@ class Assignment(Solution):
                 room = maze[room][instruction.value]
                 steps += 1
             steps_list.append(steps)
-        print(steps_list)
 
         return math.lcm(*steps_list)

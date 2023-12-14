@@ -85,7 +85,6 @@ def check_progress(progress: list[int]) -> int:
     try:
         i = progress[:-1].index(progress[-1])
         if progress[i-2:i+1] == progress[-3:]:
-            print(len(progress), i)
             return len(progress) - i - 1
     except ValueError:
         return 0
