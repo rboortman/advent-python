@@ -40,3 +40,12 @@ class Solution(ABC):
         )
 
         return (silver_solution, gold_solution)
+
+    def timed_solve(self, input: str) -> ((R, float), (R, float)):
+        silver_input = self.parse_input(input)
+        gold_input = self.parse_input(input, True)
+        silver_solution, silver_time = self.timed_silver(silver_input)
+        gold_solution, gold_time = self.timed_gold(gold_input)
+
+        return ((silver_solution, silver_time), (gold_solution, gold_time))
+
