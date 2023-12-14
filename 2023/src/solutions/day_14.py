@@ -79,20 +79,17 @@ class Platform:
     def __repr__(self):
         return str(self)
 
-class Memoize:
-    def __init__(self, f):
-        self.f = f
-        self.memo = {}
-    def __call__(self, *args):
-        if not args in self.memo:
-            self.memo[args] = self.f(*args)
-        return self.memo[args]
-
-@Memoize
-def spin(platform: str) -> str:
-    p = Platform(platform)
-    return str(p.spin())
-
+def check_progress(progress: list[int]) -> int:
+    if len(progress) < 2:
+        return 0
+    try:
+        i = progress[:-1].index(progress[-1])
+        if progress[i-2:i+1] == progress[-3:]:
+            print(len(progress), i)
+            return len(progress) - i - 1
+    except ValueError:
+        return 0
+    return 0
 
 class Assignment(Solution):
     def parse_input(self, input: str, is_gold: bool = False) -> Platform:
@@ -103,9 +100,19 @@ class Assignment(Solution):
 
     def gold(self, input: Platform) -> int:
         try_value = 1_000_000_000
-        input_str = str(input)
-        # for _ in tqdm(range(try_value)):
-        for _ in range(try_value):
-            input_str = spin(input_str)
+        progress = []
+        loop = 0
+        index = 0
 
-        return Platform(input_str).count_rocks()
+        while loop <= 0:
+            index += 1
+            input.spin()
+            progress.append(input.count_rocks())
+            loop = check_progress(progress)
+
+        left = (try_value - index) % loop
+
+        for _ in range(left):
+            input.spin()
+
+        return input.count_rocks()
