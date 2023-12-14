@@ -121,7 +121,7 @@ class Assignment(Solution):
         return Grid.parse_input(input)
     
     def silver(self, input: Grid) -> int:
-        return sum(map(input.get_part_number, filter(input.has_symbol_next_to_part, [i for i, part in enumerate(input.part_numbers)])))
+        return sum([input.get_part_number(i) for i in range(len(input.part_numbers)) if input.has_symbol_next_to_part(i)])
     
     def gold(self, input: Grid) -> int:
         symbols = input.get_all_star_symbols()
