@@ -31,16 +31,19 @@ class Grid:
             current = None
             # print(distances)
             for coord in distances:
-                if coord not in visited and (current is None or distances[coord][0] < distances[current][0]) and (len(distances[coord][1]) < 3 or  len(set(distances[coord][1][-3:])) > 1):
+                if coord not in visited and (current is None or distances[coord][0] < distances[current][0]):
                     current = coord
             visited.add(current)
             previous_distance = distances[current][1]
             print(current, previous_distance)
             for (coord, dir) in self.possible_next(current):
 
-                print(coord not in visited, coord, dir, (len(previous_distance) < 3 or any([dir != d for d in previous_distance[-3:]])))
-                if coord not in visited and (len(previous_distance) < 3 or any([dir != d for d in previous_distance[-3:]])):
-                    distances[coord] = (min(distances[coord][0], distances[current][0] + self.grid[coord[1]][coord[0]]), previous_distance + [dir])
+                print(coord, dir, (len(previous_distance) < 3 or any([dir != d for d in previous_distance[-3:]])), distances[coord][0] > distances[current][0] + self.grid[coord[1]][coord[0]], coord in visited)
+                if len(previous_distance) < 3 or any([dir != d for d in previous_distance[-3:]]):
+                    if distances[coord][0] > distances[current][0] + self.grid[coord[1]][coord[0]]:
+                        distances[coord] = (min(distances[coord][0], distances[current][0] + self.grid[coord[1]][coord[0]]), previous_distance + [dir])
+                        if coord in visited:
+                            visited.remove(coord)
             print(distances)
         return distances[end]
         
