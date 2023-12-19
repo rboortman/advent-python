@@ -1,3 +1,4 @@
+import math
 from .solution import Solution
 
 
@@ -69,6 +70,10 @@ class Instruction:
         return hash(self.__str__())
 
 
+def get_xmas(rule: tuple[int, str, int, str], x: tuple[int, int], m: tuple[int, int], a: tuple[int, int], s: tuple[int, int]) -> tuple[int, tuple[int, int], tuple[int, int], tuple[int, int], tuple[int, int]]:
+    xmas = [(x[1] - x[0]), (m[1] - m[0]), (a[1] - a[0]), (s[1] - s[0])]
+    return math.prod(xmas), x, m, a, s
+
 class Memoize:
     def __init__(self, f):
         self.f = f
@@ -81,29 +86,64 @@ class Memoize:
 
 
 @Memoize
-def calculate_possibilities(id: str, instructions: frozenset[Instruction]) -> int:
+def calculate_possibilities(id: str, instructions: frozenset[Instruction], x: tuple[int, int] = (0, 4_000), m: tuple[int, int] = (0, 4_000), a: tuple[int, int] = (0, 4_000), s: tuple[int, int] = (0, 4_000)) -> int:
     instruction = list(filter(lambda x: x.id == id, instructions))[0]
-    print(instruction)
     result = 0
-    rest_multiplier = 1
     for rule in instruction.rules:
-        multiplier = rule[2] - 1 if rule[1] == "<" else 4_000 - rule[2]
-        rest_multiplier *= 4_000 - multiplier
+        alt_x, alt_m, alt_a, alt_s = x, m, a, s
+        if rule[0] == 0:
+            if (rule[1] == "<" and rule[2] < x[0]) or (rule[1] == ">" and rule[2] > x[1]):
+                continue
+            else:
+                if rule[1] == "<":
+                    alt_x = (x[0], max(x[0], rule[2] - 1))
+                    x = (min(x[1], rule[2] - 1), x[1])
+                elif rule[1] == ">":
+                    alt_x = (min(x[1], rule[2]), x[1])
+                    x = (x[0], max(x[0], rule[2]))
+        elif rule[0] == 1:
+            if (rule[1] == "<" and rule[2] < m[0]) or (rule[1] == ">" and rule[2] > m[1]):
+                continue
+            else:
+                if rule[1] == "<":
+                    alt_m = (m[0], max(m[0], rule[2] - 1))
+                    m = (min(m[1], rule[2] - 1), m[1])
+                elif rule[1] == ">":
+                    alt_m = (min(m[1], rule[2]), m[1])
+                    m = (m[0], max(m[0], rule[2]))
+        elif rule[0] == 2:
+            if (rule[1] == "<" and rule[2] < a[0]) or (rule[1] == ">" and rule[2] > a[1]):
+                continue
+            else:
+                if rule[1] == "<":
+                    alt_a = (a[0], max(a[0], rule[2] - 1))
+                    a = (min(a[1], rule[2] - 1), a[1])
+                elif rule[1] == ">":
+                    alt_a = (min(a[1], rule[2]), a[1])
+                    a = (a[0], max(a[0], rule[2]))
+        elif rule[0] == 3:
+            if (rule[1] == "<" and rule[2] < s[0]) or (rule[1] == ">" and rule[2] > s[1]):
+                continue
+            else:
+                if rule[1] == "<":
+                    alt_s = (s[0], max(s[0], rule[2] - 1))
+                    s = (min(s[1], rule[2] - 1), s[1])
+                elif rule[1] == ">":
+                    alt_s = (min(s[1], rule[2]), s[1])
+                    s = (s[0], max(s[0], rule[2]))
 
         if rule[3] == "R":
             continue
         elif rule[3] == "A":
-            result += multiplier
+            result += (alt_x[1] - alt_x[0]) * (alt_m[1] - alt_m[0]) * (alt_a[1] - alt_a[0]) * (alt_s[1] - alt_s[0])
         else:
-            result += multiplier * calculate_possibilities(rule[3], instructions)
+            result += calculate_possibilities(rule[3], instructions, alt_x, alt_m, alt_a, alt_s)
 
     if instruction.fallback != "R":
         if instruction.fallback == "A":
-            result += rest_multiplier
+            result += (x[1] - x[0]) * (m[1] - m[0]) * (a[1] - a[0]) * (s[1] - s[0])
         else:
-            result += rest_multiplier * calculate_possibilities(
-                instruction.fallback, instructions
-            )
+            result += calculate_possibilities(instruction.fallback, instructions, x, m, a, s)
 
     return result
 
@@ -122,7 +162,6 @@ class Assignment(Solution):
         )
 
     def silver(self, input: tuple[dict[str, Instruction], list[Gear]]) -> int:
-        # print(input)
         instructions, gears = input
         result = 0
         for gear in gears:
@@ -135,5 +174,4 @@ class Assignment(Solution):
 
     def gold(self, input: tuple[dict[str, Instruction], list[Gear]]) -> int:
         instructions, _ = input
-        # return 0
-        return calculate_possibilities("pv", frozenset(instructions.values()))
+        return calculate_possibilities("in", frozenset(instructions.values()))
