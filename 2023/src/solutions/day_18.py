@@ -10,9 +10,10 @@ class Terrain(Enum):
 
     def __str__(self) -> str:
         return self.value
-    
+
     def __repr__(self) -> str:
         return self.__str__()
+
 
 class Instruction(Enum):
     NORTH = (0, -1)
@@ -30,14 +31,18 @@ class Instruction(Enum):
     def parse(input: str) -> "Instruction":
         return {
             "R": Instruction.EAST,
+            "0": Instruction.EAST,
             "D": Instruction.SOUTH,
+            "1": Instruction.SOUTH,
             "L": Instruction.WEST,
+            "2": Instruction.WEST,
             "U": Instruction.NORTH,
+            "3": Instruction.NORTH,
         }[input]
 
 
 class Grid:
-    def __init__(self, input: str) -> None:
+    def __init__(self, input: str, is_gold: bool = False) -> None:
         self.instructions = [
             (
                 Instruction.parse(line.split(" ")[0]),
@@ -46,106 +51,97 @@ class Grid:
             )
             for line in input.splitlines()
         ]
-        self.width = functools.reduce(
+        if is_gold:
+            self.instructions = [
+                (
+                    Instruction.parse(instruction[2][-1]),
+                    int(instruction[2][:-1], 16),
+                    instruction[2],
+                )
+                for instruction in self.instructions
+            ]
+
+        x_min_max = functools.reduce(
             lambda acc, ins: (
-                max(
+                min(
                     acc[0],
-                    acc[1] + ins[1] if ins[0] == Instruction.EAST else acc[1] - ins[1],
+                    acc[2] + ins[1] if ins[0] == Instruction.EAST else acc[2] - ins[1],
                 ),
-                acc[1] + ins[1] if ins[0] == Instruction.EAST else acc[1] - ins[1],
+                max(
+                    acc[1],
+                    acc[2] + ins[1] if ins[0] == Instruction.EAST else acc[2] - ins[1],
+                ),
+                acc[2] + ins[1] if ins[0] == Instruction.EAST else acc[2] - ins[1],
             ),
             [
                 instruction
                 for instruction in self.instructions
                 if instruction[0] in [Instruction.EAST, Instruction.WEST]
             ],
-            (0, 0),
-        )[0]
-        self.height = functools.reduce(
+            (0, 0, 0),
+        )
+        y_min_max = functools.reduce(
             lambda acc, ins: (
-                max(
+                min(
                     acc[0],
-                    acc[1] + ins[1] if ins[0] == Instruction.SOUTH else acc[1] - ins[1],
+                    acc[2] + ins[1] if ins[0] == Instruction.SOUTH else acc[2] - ins[1],
                 ),
-                acc[1] + ins[1] if ins[0] == Instruction.SOUTH else acc[1] - ins[1],
+                max(
+                    acc[1],
+                    acc[2] + ins[1] if ins[0] == Instruction.SOUTH else acc[2] - ins[1],
+                ),
+                acc[2] + ins[1] if ins[0] == Instruction.SOUTH else acc[2] - ins[1],
             ),
             [
                 instruction
                 for instruction in self.instructions
                 if instruction[0] in [Instruction.NORTH, Instruction.SOUTH]
             ],
-            (0, 0),
-        )[0]
-        self.grid = [[Terrain.EMPTY for _ in range(self.width + 1)] for _ in range(self.height + 1)]
+            (0, 0, 0),
+        )
+        self.width = abs(x_min_max[0]) + abs(x_min_max[1])
+        self.height = abs(y_min_max[0]) + abs(y_min_max[1])
+        self.start = (abs(x_min_max[0]), abs(y_min_max[0]))
 
-        pointer = (0, 0)
-        for instruction in self.instructions:
-            for _ in range(instruction[1]):
-                pointer = (
-                    pointer[0] + instruction[0].value[0],
-                    pointer[1] + instruction[0].value[1],
-                )
-                self.grid[pointer[1]][pointer[0]] = Terrain.HOLE
-
-    def count_hole_sections(
-        self, coord: tuple[int, int]
-    ) -> int:
-        x, y = coord
-        tile = self.grid[y][x]
-        count = 0
-        last_direction = None
-
-        for i, tile in enumerate(self.grid[y][x:]):
-            if tile == Terrain or checked_grid[y][x + i] != Checked.LOOP:
-                last_direction = None
-            elif tile == Section.NORTH_SOUTH:
-                last_direction = None
-                count += 1
-            else:
-                if tile.has_east():
-                    if tile.has_north():
-                        last_direction = Direction.NORTH
-                    elif tile.has_south():
-                        last_direction = Direction.SOUTH
-                else:
-                    if (tile.has_north() and last_direction == Direction.SOUTH) or (
-                        tile.has_south() and last_direction == Direction.NORTH
-                    ):
-                        count += 1
-                    last_direction = None
-
-        return count
-
-    def fill(self, pointer: tuple[int, int], direction: Instruction) -> None:
-        for (y, row) in enumerate(self.grid):
-            for (x, tile) in enumerate(row):
-                if tile == Terrain.HOLE:
-                    continue
-                edges = []
-
-        if self.grid[pointer[1]][pointer[0]] == Terrain.HOLE:
-            return
-        while self.grid[pointer[1]][pointer[0]] == Terrain.EMPTY:
-            self.grid[pointer[1]][pointer[0]] = Terrain.HOLE
-            pointer = (
-                pointer[0] + direction.value[0],
-                pointer[1] + direction.value[1],
-            )
+    def calculate_area(self) -> int:
+        area = 0
+        y = self.start[1]
+        for i, instruction in enumerate(self.instructions):
+            if instruction[0] == Instruction.NORTH:
+                y -= instruction[1]
+            elif instruction[0] == Instruction.SOUTH:
+                y += instruction[1]
+            elif instruction[0] == Instruction.EAST:
+                width = instruction[1]
+                if self.instructions[i + 1][0] != self.instructions[i - 1][0]:
+                    if self.instructions[i + 1][0] == Instruction.NORTH:
+                        width -= 1
+                    else:
+                        width += 1
+                area -= width * y
+            elif instruction[0] == Instruction.WEST:
+                width = instruction[1]
+                if self.instructions[i + 1][0] != self.instructions[i - 1][0]:
+                    if self.instructions[i + 1][0] == Instruction.NORTH:
+                        width += 1
+                    else:
+                        width -= 1
+                area += width * (y + 1)
+        return area
 
     def __str__(self) -> str:
-        return "\n".join(["".join([str(char) for char in line]) for line in self.grid])
-    
+        return "\n".join([str(instruction) for instruction in self.instructions])
+
     def __repr__(self) -> str:
         return self.__str__()
 
 
 class Assignment(Solution):
     def parse_input(self, input: str, is_gold: bool = False) -> Grid:
-        return Grid(input)
+        return Grid(input, is_gold=is_gold)
 
     def silver(self, input: Grid) -> int:
-        print(input)
-        return 0
+        return input.calculate_area()
 
     def gold(self, input: Grid) -> int:
-        return 0
+        return input.calculate_area()
