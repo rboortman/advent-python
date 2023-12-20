@@ -74,18 +74,6 @@ def get_xmas(rule: tuple[int, str, int, str], x: tuple[int, int], m: tuple[int, 
     xmas = [(x[1] - x[0]), (m[1] - m[0]), (a[1] - a[0]), (s[1] - s[0])]
     return math.prod(xmas), x, m, a, s
 
-class Memoize:
-    def __init__(self, f):
-        self.f = f
-        self.memo = {}
-
-    def __call__(self, *args):
-        if not args in self.memo:
-            self.memo[args] = self.f(*args)
-        return self.memo[args]
-
-
-@Memoize
 def calculate_possibilities(id: str, instructions: frozenset[Instruction], x: tuple[int, int] = (0, 4_000), m: tuple[int, int] = (0, 4_000), a: tuple[int, int] = (0, 4_000), s: tuple[int, int] = (0, 4_000)) -> int:
     instruction = list(filter(lambda x: x.id == id, instructions))[0]
     result = 0
