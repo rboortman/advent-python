@@ -73,7 +73,12 @@ class Module:
         return out_signal, self.output
 
     def __str__(self) -> str:
-        return f"{self.id} -> {self.output}"
+        output = f"{self.id} -> {self.output}"
+        if self.type == ModuleType.FLIP_FLOP:
+            output += f" ({self.on})"
+        elif self.type == ModuleType.CONJUNCTION:
+            output += f" ({self.memory})"
+        return 
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -115,20 +120,27 @@ class Assignment(Solution):
 
         # print(input)
         button_pressed = 0
-        while True:
+        # while True:
+        while button_pressed < 4:
             button_pressed += 1
-
-            if button_pressed % 100_000 == 0:
-                print(button_pressed)
+            signal_count = [0, 0]
 
             signal_backlog = [("button", Signal.LOW, "broadcaster")]
             while len(signal_backlog) > 0:
                 source, signal, dest = signal_backlog.pop(0)
-                # print(f"{signal} {dest}")
+                print(f"{signal} {dest}")
+                signal_count[signal.value] += 1
                 out_signal, output = input[dest].process_signal(signal, source)
                 if out_signal == Signal.FINISHED:
                     return button_pressed
                 if out_signal is not None and out_signal != Signal.FINISHED:
                     for o in output:
-                        # print(f"{dest} {out_signal} {o}")
+                        print(f"{dest} {out_signal} {o}")
                         signal_backlog.append((dest, out_signal, o))
+            # print(input["jg"], input["jg"].memory)
+            # print(input["rh"], input["rh"].memory)
+            # print(input["jm"], input["jm"].memory)
+            # print(input["hf"], input["hf"].memory)
+            # if signal_count[0] == 9 and signal_count[1] == 35:
+            #     continue
+            print(f"===== Signal Count {signal_count} ({button_pressed}) =====")

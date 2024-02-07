@@ -123,12 +123,14 @@ def calculate_possibilities(id: str, instructions: frozenset[Instruction], x: tu
         if rule[3] == "R":
             continue
         elif rule[3] == "A":
+            print(f"{instruction.id} -> [X={alt_x[1] - alt_x[0]}, M={alt_m[1] - alt_m[0]}, A={alt_a[1] - alt_a[0]}, S={alt_s[1] - alt_s[0]}] => {(alt_x[1] - alt_x[0]) * (alt_m[1] - alt_m[0]) * (alt_a[1] - alt_a[0]) * (alt_s[1] - alt_s[0])}")
             result += (alt_x[1] - alt_x[0]) * (alt_m[1] - alt_m[0]) * (alt_a[1] - alt_a[0]) * (alt_s[1] - alt_s[0])
         else:
             result += calculate_possibilities(rule[3], instructions, alt_x, alt_m, alt_a, alt_s)
 
     if instruction.fallback != "R":
         if instruction.fallback == "A":
+            print(f"{instruction.id} -> [X={alt_x[1] - alt_x[0]}, M={alt_m[1] - alt_m[0]}, A={alt_a[1] - alt_a[0]}, S={alt_s[1] - alt_s[0]}] => {(alt_x[1] - alt_x[0]) * (alt_m[1] - alt_m[0]) * (alt_a[1] - alt_a[0]) * (alt_s[1] - alt_s[0])}")
             result += (x[1] - x[0]) * (m[1] - m[0]) * (a[1] - a[0]) * (s[1] - s[0])
         else:
             result += calculate_possibilities(instruction.fallback, instructions, x, m, a, s)
